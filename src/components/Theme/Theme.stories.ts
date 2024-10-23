@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/web-components';
 import { html } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
+import { until } from 'lit/directives/until.js';
 import './Theme';
 import { THEMES, type Theme } from './Theme';
 
@@ -29,7 +30,7 @@ The Auro Theme component provides theming capabilities for Auro components. It m
 - Provides theme context for child components
 - Generates CSS custom properties from theme tokens
         `,
-      }
+      },
     },
   },
   argTypes: {
@@ -42,7 +43,7 @@ The Auro Theme component provides theming capabilities for Auro components. It m
         defaultValue: { summary: THEMES.LIGHT },
       },
     },
-  }
+  },
 } satisfies Meta<ThemeProps>;
 
 export default meta;
@@ -89,16 +90,37 @@ export const SystemPreference: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'This example follows your system theme preference. Try switching your system theme to see it update.',
+        story: 'This example follows your system theme preference. Switch your system theme to see it update dynamically.',
       },
     },
   },
   render: () => html`
     <auro-theme>
-      ${ThemedBox()}
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        ${ThemedBox()}
+        <p style="margin: 0; font-size: 14px;">
+          Current theme: <strong id="current-theme"></strong>
+        </p>
+      </div>
     </auro-theme>
+
+    <script>
+      const themeElement = document.querySelector('auro-theme');
+      const themeDisplay = document.getElementById('current-theme');
+
+      function updateThemeDisplay() {
+        themeDisplay.textContent = window.auroThemeContext.getTheme();
+      }
+
+      // Monitor theme changes
+      themeElement?.addEventListener('auroThemeChanged', updateThemeDisplay);
+
+      // Initial render of the theme display
+      updateThemeDisplay();
+    </script>
   `,
 };
+
 
 export const ThemeToggle: Story = {
   parameters: {
@@ -207,37 +229,45 @@ export const TokenUsage: Story = {
       },
     },
   },
-  render: () => html`
-    <auro-theme>
-      <div style="display: flex; flex-direction: column; gap: 16px;">
-        <div style="
-          padding: 20px;
-          background-color: var(--background-primary);
-          color: var(--text-primary);
-          border: 1px solid var(--border-default);
-          border-radius: var(--radii-md);
-        ">
-          Primary Background
-        </div>
-        <div style="
-          padding: 20px;
-          background-color: var(--background-secondary);
-          color: var(--text-secondary);
-          border: 1px solid var(--border-default);
-          border-radius: var(--radii-md);
-        ">
-          Secondary Background
-        </div>
-        <div style="
-          padding: 20px;
-          background-color: var(--background-tertiary);
-          color: var(--text-primary);
-          border: 1px solid var(--border-hover);
-          border-radius: var(--radii-md);
-        ">
-          Tertiary Background
-        </div>
-      </div>
-    </auro-theme>
-  `,
+  render: () => {
+    const themeReady = new Promise<Theme>((resolve) => {
+      resolve(window.auroThemeContext.getTheme());
+    });
+
+    return html`
+      ${until(themeReady.then(() => html`
+        <auro-theme>
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="
+              padding: 20px;
+              background-color: var(--background-primary);
+              color: var(--text-primary);
+              border: 1px solid var(--border-default);
+              border-radius: var(--radii-md);
+            ">
+              Primary Background
+            </div>
+            <div style="
+              padding: 20px;
+              background-color: var(--background-secondary);
+              color: var(--text-secondary);
+              border: 1px solid var(--border-default);
+              border-radius: var(--radii-md);
+            ">
+              Secondary Background
+            </div>
+            <div style="
+              padding: 20px;
+              background-color: var(--background-tertiary);
+              color: var(--text-primary);
+              border: 1px solid var(--border-hover);
+              border-radius: var(--radii-md);
+            ">
+              Tertiary Background
+            </div>
+          </div>
+        </auro-theme>
+      `))}
+    `;
+  },
 };

@@ -109,17 +109,17 @@ export class AuroThemeElement extends LitElement {
   /** Set up event listeners and initializes theme */
   override connectedCallback(): void {
     super.connectedCallback();
-    
+  
     if (!this.theme) {
       this.theme = this.getInitialTheme();
     }
-
+  
     this.themeContext.tokens = this.getThemeTokens();
     window.auroThemeContext = this.themeContext;
-
+  
     this.mediaQuery.addEventListener('change', this.handleSystemThemeChange);
     window.addEventListener('storage', this.handleStorageChange.bind(this));
-    
+  
     // Initial dispatch
     this.dispatchThemeChange();
   }
@@ -146,9 +146,12 @@ export class AuroThemeElement extends LitElement {
   /** Handle system theme preference changes */
   private handleSystemThemeChange(e: MediaQueryListEvent): void {
     if (!localStorage.getItem(THEME_STORAGE_KEY)) {
-      this.theme = e.matches ? THEMES.DARK : THEMES.LIGHT;
-      this.requestUpdate();
-      this.dispatchThemeChange();
+      const newTheme = e.matches ? THEMES.DARK : THEMES.LIGHT;
+      if (this.theme !== newTheme) {
+        this.theme = newTheme;
+        this.requestUpdate();
+        this.dispatchThemeChange();
+      }
     }
   }
 

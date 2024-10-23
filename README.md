@@ -7,7 +7,7 @@ An evolution of the Auro Design System by Alaska Airlines.
 - Built with Lit.js 3 🔥
 - Every component exports its own React component ⚡️
 - Storybook integration 📗
-- Vite for faster builds 🏃‍♀️💪
+- Vite for faster workflows 🏃‍♀️💪
 
 ## Setup
 

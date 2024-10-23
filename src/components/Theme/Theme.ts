@@ -34,7 +34,7 @@ declare global {
   }
 
   interface HTMLElementTagNameMap {
-    'auro-theme': AuroThemeElement;
+    'auro-theme': AuroTheme;
   }
 }
 
@@ -61,7 +61,7 @@ declare global {
  * ```
  */
 @customElement('auro-theme')
-export class AuroThemeElement extends LitElement {
+export class AuroTheme extends LitElement {
   /** The current theme */
   @property({ type: String, reflect: true, attribute: 'theme' })
   theme?: Theme = DEFAULT_THEME;
@@ -221,6 +221,3 @@ export class AuroThemeElement extends LitElement {
     `;
   }
 }
-
-// Export for React wrapper
-export const Theme = AuroThemeElement;

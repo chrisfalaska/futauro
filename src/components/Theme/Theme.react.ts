@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 import { createComponent } from '@lit/react';
-import { AuroThemeElement } from './Theme';
+import { AuroTheme as AuroThemeElement } from './Theme';
 
 // Type for the custom event detail
 type ThemeChangeEventDetail = {

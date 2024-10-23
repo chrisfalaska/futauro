@@ -12,7 +12,7 @@ export const THEMES = {
 
 export type Theme = typeof THEMES[keyof typeof THEMES]
 
-/** Maps theme names to their respective token sets */
+/** Map theme names to their respective token sets */
 const themeTokenMap: Record<Theme, typeof lightTheme> = {
   [THEMES.LIGHT]: lightTheme,
   [THEMES.DARK]: darkTheme,
@@ -21,15 +21,10 @@ const themeTokenMap: Record<Theme, typeof lightTheme> = {
 const DEFAULT_THEME = THEMES.LIGHT;
 const THEME_STORAGE_KEY = 'auro-theme-preference'
 
-/** Interface defining the theme context API */
 interface ThemeContext {
-  /** Gets the current theme */
   getTheme: () => Theme;
-  /** Sets the theme to a specific value */
   setTheme: (theme: Theme) => void;
-  /** Toggles between available themes */
   toggleTheme: () => void;
-  /** Current theme tokens */
   tokens: typeof lightTheme;
 }
 
@@ -44,17 +39,12 @@ declare global {
 }
 
 /**
- * @component auro-theme
- * 
- * @description
- * The auro-theme component provides theming capabilities for Auro applications.
+ * The auro-theme component provides theming capabilities for Auro components.
  * It manages theme switching, system preference detection, and persistent theme storage.
  * 
  * @slot - Default slot for themed content
  * 
  * @fires auroThemeChanged - Fires when the theme changes with detail containing new theme and tokens
- * 
- * @attr {Theme} theme - Sets the active theme (exp: 'light' or 'dark')
  * 
  * @example
  * Basic usage:
@@ -72,24 +62,13 @@ declare global {
  */
 @customElement('auro-theme')
 export class AuroTheme extends LitElement {
-  /**
-   * The current theme.
-   * @attr theme
-   */
+  /** The current theme */
   @property({ type: String, reflect: true, attribute: 'theme' })
   theme?: Theme = DEFAULT_THEME;
 
-  /**
-   * MediaQueryList for system theme preference
-   * @private
-   */
   @state()
   private mediaQuery: MediaQueryList;
 
-  /**
-   * Theme context object exposed globally
-   * @private
-   */
   private themeContext: ThemeContext = {
     getTheme: () => this.theme as Theme,
     setTheme: (theme: Theme) => {
@@ -110,17 +89,13 @@ export class AuroTheme extends LitElement {
 
   constructor() {
     super();
-    /** Look for the user's system theme preference */
+    /** Look for user system setting */
     this.mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    /** Listen for theme switch */
+    /** Listen for theme changes */
     this.handleSystemThemeChange = this.handleSystemThemeChange.bind(this);
   }
 
-  /**
-   * Get the initial theme based on stored preference or system setting
-   * @private
-   * @returns {Theme} The initial theme to use
-   */
+  /** Return the initial theme based on stored preference or system setting */
   private getInitialTheme(): Theme {
     const storedTheme = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
 
@@ -131,10 +106,7 @@ export class AuroTheme extends LitElement {
     return this.mediaQuery.matches ? THEMES.DARK : THEMES.LIGHT;
   }
 
-  /**
-   * Set up event listeners and initializes theme
-   * @protected
-   */
+  /** Set up event listeners and initializes theme */
   override connectedCallback(): void {
     super.connectedCallback();
     
@@ -150,21 +122,14 @@ export class AuroTheme extends LitElement {
     window.addEventListener('storage', this.handleStorageChange.bind(this));
   }
 
-  /**
-   * Clean up event listeners
-   * @protected
-   */
+  /** Clean up event listeners */
   override disconnectedCallback(): void {
     super.disconnectedCallback();
     this.mediaQuery.removeEventListener('change', this.handleSystemThemeChange);
     window.removeEventListener('storage', this.handleStorageChange.bind(this));
   }
 
-  /**
-   * Handle theme changes from other windows/tabs
-   * @private
-   * @param {StorageEvent} e - Storage event containing theme change
-   */
+  /** Handle theme changes from other windows/tabs */
   private handleStorageChange(e: StorageEvent): void {
     if (e.key === THEME_STORAGE_KEY) {
       const newTheme = e.newValue as Theme | null;
@@ -174,11 +139,7 @@ export class AuroTheme extends LitElement {
     }
   }
 
-  /**
-   * Handle system theme preference changes
-   * @private
-   * @param {MediaQueryListEvent} e - Media query change event
-   */
+  /** Handle system theme preference changes */
   private handleSystemThemeChange(e: MediaQueryListEvent): void {
     if (!localStorage.getItem(THEME_STORAGE_KEY)) {
       this.theme = e.matches ? THEMES.DARK : THEMES.LIGHT;
@@ -186,31 +147,18 @@ export class AuroTheme extends LitElement {
     }
   }
 
-  /**
-   * Get the token set for the current theme
-   * @private
-   * @returns {typeof lightTheme} The current theme's tokens
-   */
+  /** Return the token set for the current theme */
   private getThemeTokens() {
     return themeTokenMap[this.theme as Theme];
   }
 
-  /**
-   * Reset theme to system preference
-   * @public
-   */
+  /** Reset theme to system preference */
   public resetTheme(): void {
     localStorage.removeItem(THEME_STORAGE_KEY);
     this.theme = this.mediaQuery.matches ? THEMES.DARK : THEMES.LIGHT;
   }
 
-  /**
-   * Generate CSS variables from theme tokens
-   * @private
-   * @param {Record<string, any>} tokens - Theme tokens to convert
-   * @param {string} [prefix=''] - Prefix for nested properties
-   * @returns {Record<string, string>} CSS variable map
-   */
+  /** Generate CSS variables from theme tokens */
   private generateCSSVariables(tokens: Record<string, any>, prefix = ''): Record<string, string> {
     return Object.entries(tokens).reduce((vars, [key, value]) => {
       const varName = prefix ? `--${prefix}-${key}` : `--${key}`;
@@ -229,11 +177,7 @@ export class AuroTheme extends LitElement {
     }, {});
   }
 
-  /**
-   * Dispatche theme change event
-   * @private
-   * @fires auroThemeChanged
-   */
+  /** Dispatche theme change event */
   private dispatchThemeChange(): void {
     this.themeContext.tokens = this.getThemeTokens();
     
@@ -248,11 +192,7 @@ export class AuroTheme extends LitElement {
     this.dispatchEvent(event);
   }
 
-  /**
-   * Handle property changes
-   * @protected
-   * @param {Map<string, unknown>} changedProperties - Changed properties
-   */
+  /** Handle property changes */
   protected override updated(changedProperties: Map<string, unknown>): void {
     if (changedProperties.has('theme')) {
       this.dispatchThemeChange();

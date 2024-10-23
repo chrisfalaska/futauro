@@ -68,10 +68,6 @@ const darkThemeCSS = themeToCSS(darkTheme);
 @customElement('auro-theme')
 export class AuroTheme extends LitElement {
   static override styles = css`
-    :host {
-      display: block;
-    }
-
     .auro-theme--light {
       ${unsafeCSS(lightThemeCSS)};
     }

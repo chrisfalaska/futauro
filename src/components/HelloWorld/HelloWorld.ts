@@ -6,10 +6,10 @@ import { styles } from './styles';
 export class HelloWorld extends LitElement {
   static override styles = styles;
 
-  @property() name = 'Somebody';
+  @property({ type: String }) name = 'Somebody';
 
   override render() {
-    return html`<p>Hello, ${this.name}!</p>`;
+    return html`<p class="primary-color">Hello, ${this.name}!</p>`;
   }
 }
 

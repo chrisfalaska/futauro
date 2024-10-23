@@ -34,7 +34,7 @@ declare global {
   }
 
   interface HTMLElementTagNameMap {
-    'auro-theme': AuroTheme;
+    'auro-theme': AuroThemeElement;
   }
 }
 
@@ -61,7 +61,7 @@ declare global {
  * ```
  */
 @customElement('auro-theme')
-export class AuroTheme extends LitElement {
+export class AuroThemeElement extends LitElement {
   /** The current theme */
   @property({ type: String, reflect: true, attribute: 'theme' })
   theme?: Theme = DEFAULT_THEME;
@@ -74,15 +74,15 @@ export class AuroTheme extends LitElement {
     setTheme: (theme: Theme) => {
       this.theme = theme;
       localStorage.setItem(THEME_STORAGE_KEY, theme);
+      this.requestUpdate();
+      this.dispatchThemeChange();
     },
     toggleTheme: () => {
-      const themes = Object.values(THEMES);
-      const currentIndex = themes.indexOf(this.theme as Theme);
-      const nextIndex = (currentIndex + 1) % themes.length;
-      const newTheme = themes[nextIndex];
-      
+      const newTheme = this.theme === THEMES.LIGHT ? THEMES.DARK : THEMES.LIGHT;
       this.theme = newTheme;
       localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+      this.requestUpdate();
+      this.dispatchThemeChange();
     },
     tokens: themeTokenMap[DEFAULT_THEME]
   };
@@ -114,12 +114,14 @@ export class AuroTheme extends LitElement {
       this.theme = this.getInitialTheme();
     }
 
-    this.mediaQuery.addEventListener('change', this.handleSystemThemeChange);
-    
     this.themeContext.tokens = this.getThemeTokens();
     window.auroThemeContext = this.themeContext;
 
+    this.mediaQuery.addEventListener('change', this.handleSystemThemeChange);
     window.addEventListener('storage', this.handleStorageChange.bind(this));
+    
+    // Initial dispatch
+    this.dispatchThemeChange();
   }
 
   /** Clean up event listeners */
@@ -135,6 +137,8 @@ export class AuroTheme extends LitElement {
       const newTheme = e.newValue as Theme | null;
       if (newTheme && this.theme !== newTheme) {
         this.theme = newTheme;
+        this.requestUpdate();
+        this.dispatchThemeChange();
       }
     }
   }
@@ -143,6 +147,7 @@ export class AuroTheme extends LitElement {
   private handleSystemThemeChange(e: MediaQueryListEvent): void {
     if (!localStorage.getItem(THEME_STORAGE_KEY)) {
       this.theme = e.matches ? THEMES.DARK : THEMES.LIGHT;
+      this.requestUpdate();
       this.dispatchThemeChange();
     }
   }
@@ -156,6 +161,8 @@ export class AuroTheme extends LitElement {
   public resetTheme(): void {
     localStorage.removeItem(THEME_STORAGE_KEY);
     this.theme = this.mediaQuery.matches ? THEMES.DARK : THEMES.LIGHT;
+    this.requestUpdate();
+    this.dispatchThemeChange();
   }
 
   /** Generate CSS variables from theme tokens */
@@ -177,7 +184,7 @@ export class AuroTheme extends LitElement {
     }, {});
   }
 
-  /** Dispatche theme change event */
+  /** Dispatch theme change event */
   private dispatchThemeChange(): void {
     this.themeContext.tokens = this.getThemeTokens();
     
@@ -195,6 +202,7 @@ export class AuroTheme extends LitElement {
   /** Handle property changes */
   protected override updated(changedProperties: Map<string, unknown>): void {
     if (changedProperties.has('theme')) {
+      this.themeContext.tokens = this.getThemeTokens();
       this.dispatchThemeChange();
     }
   }
@@ -210,3 +218,6 @@ export class AuroTheme extends LitElement {
     `;
   }
 }
+
+// Export for React wrapper
+export const Theme = AuroThemeElement;

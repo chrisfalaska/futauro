@@ -1,6 +1,7 @@
-import { LitElement, html } from 'lit';
+import { LitElement, html, css, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { styleMap } from 'lit/directives/style-map.js';
+import { classMap } from 'lit/directives/class-map.js';
+import { themeToCSS } from '../../util/themeToCss';
 import { lightTheme } from './tokens/lightTheme';
 import { darkTheme } from './tokens/darkTheme';
 
@@ -38,6 +39,10 @@ declare global {
   }
 }
 
+// Generate the theme CSS strings
+const lightThemeCSS = themeToCSS(lightTheme);
+const darkThemeCSS = themeToCSS(darkTheme);
+
 /**
  * The auro-theme component provides theming capabilities for Auro components.
  * It manages theme switching, system preference detection, and persistent theme storage.
@@ -62,6 +67,20 @@ declare global {
  */
 @customElement('auro-theme')
 export class AuroTheme extends LitElement {
+  static override styles = css`
+    :host {
+      display: block;
+    }
+
+    .auro-theme--light {
+      ${unsafeCSS(lightThemeCSS)};
+    }
+
+    .auro-theme--dark {
+      ${unsafeCSS(darkThemeCSS)};
+    }
+  `;
+
   /** The current theme */
   @property({ type: String, reflect: true, attribute: 'theme' })
   theme?: Theme = DEFAULT_THEME;
@@ -168,25 +187,6 @@ export class AuroTheme extends LitElement {
     this.dispatchThemeChange();
   }
 
-  /** Generate CSS variables from theme tokens */
-  private generateCSSVariables(tokens: Record<string, any>, prefix = ''): Record<string, string> {
-    return Object.entries(tokens).reduce((vars, [key, value]) => {
-      const varName = prefix ? `--${prefix}-${key}` : `--${key}`;
-      
-      if (value && typeof value === 'object') {
-        return {
-          ...vars,
-          ...this.generateCSSVariables(value, key)
-        };
-      }
-      
-      return {
-        ...vars,
-        [varName]: value as string
-      };
-    }, {});
-  }
-
   /** Dispatch theme change event */
   private dispatchThemeChange(): void {
     this.themeContext.tokens = this.getThemeTokens();
@@ -211,11 +211,13 @@ export class AuroTheme extends LitElement {
   }
 
   override render() {
-    const tokens = this.getThemeTokens();
-    const cssVariables = this.generateCSSVariables(tokens);
+    const classes = {
+      'auro-theme--light': this.theme === THEMES.LIGHT,
+      'auro-theme--dark': this.theme === THEMES.DARK,
+    };
 
     return html`
-      <div style=${styleMap(cssVariables)}>
+      <div class=${classMap(classes)}>
         <slot></slot>
       </div>
     `;

@@ -27,7 +27,11 @@ export class HelloWorld extends LitElement implements HelloWorldProps {
   @property({ type: String, reflect: true }) name = DEFAULT_NAME;
 
   override render() {
-    return html`<p class="primary-color">Hello, ${this.name}!</p>`;
+    return html`
+      <div class="greeting">
+        Hello <span class="highlight">${this.name}</span>!
+      </div>
+    `;
   }
 }
 

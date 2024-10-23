@@ -2,6 +2,16 @@ import { LitElement, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { styles } from './styles';
 
+const DEFAULT_NAME = 'Alaska Air';
+
+export interface HelloWorldProps {
+  /**
+   * The name to display in the greeting message.
+   * @default DEFAULT_NAME
+   */
+  name: string;
+}
+
 /**
  * The auro-hello-world element is a custom element that displays a greeting message.
  * 
@@ -11,15 +21,10 @@ import { styles } from './styles';
  * <auro-hello-world name="Alaska Air"></auro-hello-world>
  */
 @customElement('auro-hello-world')
-export class HelloWorld extends LitElement {
+export class HelloWorld extends LitElement implements HelloWorldProps {
   static override styles = styles;
 
-  /**
-   * The name to display in the greeting message.
-   * @default "Alaska Air"
-   * @attr name
-   */
-  @property({ type: String, reflect: true }) name = 'Alaska Air';
+  @property({ type: String, reflect: true }) name = DEFAULT_NAME;
 
   override render() {
     return html`<p class="primary-color">Hello, ${this.name}!</p>`;

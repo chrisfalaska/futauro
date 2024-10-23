@@ -3,6 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { lightTheme } from './tokens/lightTheme';
 import { darkTheme } from './tokens/darkTheme';
+import { generateCSSVariables } from '../../util/themeUtils';
 
 /** Available theme options */
 export const THEMES = {
@@ -168,25 +169,6 @@ export class AuroTheme extends LitElement {
     this.dispatchThemeChange();
   }
 
-  /** Generate CSS variables from theme tokens */
-  private generateCSSVariables(tokens: Record<string, any>, prefix = ''): Record<string, string> {
-    return Object.entries(tokens).reduce((vars, [key, value]) => {
-      const varName = prefix ? `--${prefix}-${key}` : `--${key}`;
-      
-      if (value && typeof value === 'object') {
-        return {
-          ...vars,
-          ...this.generateCSSVariables(value, key)
-        };
-      }
-      
-      return {
-        ...vars,
-        [varName]: value as string
-      };
-    }, {});
-  }
-
   /** Dispatch theme change event */
   private dispatchThemeChange(): void {
     this.themeContext.tokens = this.getThemeTokens();
@@ -212,7 +194,7 @@ export class AuroTheme extends LitElement {
 
   override render() {
     const tokens = this.getThemeTokens();
-    const cssVariables = this.generateCSSVariables(tokens);
+    const cssVariables = generateCSSVariables(tokens);
 
     return html`
       <div style=${styleMap(cssVariables)}>

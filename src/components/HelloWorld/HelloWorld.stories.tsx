@@ -26,7 +26,7 @@ const meta = {
     name: {
       control: 'text',
       description: 'Name to display in the greeting',
-      defaultValue: 'Somebody',
+      defaultValue: 'Alaska Air',
     }
   },
 } satisfies Meta<HelloWorldProps>;

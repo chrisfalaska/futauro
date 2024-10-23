@@ -4,6 +4,24 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { lightTheme } from './tokens/lightTheme';
 import { darkTheme } from './tokens/darkTheme';
 
+// Define available themes
+export const THEMES = {
+  LIGHT: 'light',
+  DARK: 'dark',
+} as const;
+
+// Create type from theme values
+export type Theme = typeof THEMES[keyof typeof THEMES]
+
+// Create a map of theme tokens
+const themeTokenMap: Record<Theme, typeof lightTheme> = {
+  [THEMES.LIGHT]: lightTheme,
+  [THEMES.DARK]: darkTheme,
+};
+
+// Default theme
+const DEFAULT_THEME = THEMES.LIGHT;
+
 interface ThemeContext {
   getTheme: () => Theme
   setTheme: (theme: Theme) => void
@@ -11,7 +29,6 @@ interface ThemeContext {
   tokens: typeof lightTheme
 }
 
-type Theme = 'light' | 'dark'
 const THEME_STORAGE_KEY = 'auro-theme-preference'
 
 declare global {
@@ -27,13 +44,11 @@ declare global {
 @customElement('auro-theme')
 export class AuroTheme extends LitElement {
   @property({ type: String, reflect: true, attribute: 'theme' })
-  // Initialize with a default value
-  theme?: Theme = 'light'
+  theme?: Theme = DEFAULT_THEME
 
   @state()
   private mediaQuery: MediaQueryList
 
-  // Initialize themeContext in the class definition
   private themeContext: ThemeContext = {
     getTheme: () => this.theme as Theme,
     setTheme: (theme: Theme) => {
@@ -41,12 +56,15 @@ export class AuroTheme extends LitElement {
       localStorage.setItem(THEME_STORAGE_KEY, theme)
     },
     toggleTheme: () => {
-      const newTheme = this.theme === 'light' ? 'dark' : 'light'
-      this.theme = newTheme
+      const themes = Object.values(THEMES);
+      const currentIndex = themes.indexOf(this.theme as Theme);
+      const nextIndex = (currentIndex + 1) % themes.length;
+      const newTheme = themes[nextIndex];
+      
+      this.theme = newTheme;
       localStorage.setItem(THEME_STORAGE_KEY, newTheme)
     },
-    // Initialize with lightTheme as default
-    tokens: lightTheme
+    tokens: themeTokenMap[DEFAULT_THEME]
   }
 
   constructor() {
@@ -58,11 +76,11 @@ export class AuroTheme extends LitElement {
   private getInitialTheme(): Theme {
     const storedTheme = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null
 
-    if (storedTheme && ['light', 'dark'].includes(storedTheme)) {
+    if (storedTheme && Object.values(THEMES).includes(storedTheme)) {
       return storedTheme as Theme
     }
 
-    return this.mediaQuery.matches ? 'dark' : 'light'
+    return this.mediaQuery.matches ? THEMES.DARK : THEMES.LIGHT
   }
 
   override connectedCallback(): void {
@@ -74,7 +92,6 @@ export class AuroTheme extends LitElement {
 
     this.mediaQuery.addEventListener('change', this.handleSystemThemeChange)
     
-    // Update tokens based on initial theme
     this.themeContext.tokens = this.getThemeTokens()
     window.auroThemeContext = this.themeContext
 
@@ -98,18 +115,18 @@ export class AuroTheme extends LitElement {
 
   private handleSystemThemeChange(e: MediaQueryListEvent): void {
     if (!localStorage.getItem(THEME_STORAGE_KEY)) {
-      this.theme = e.matches ? 'dark' : 'light'
+      this.theme = e.matches ? THEMES.DARK : THEMES.LIGHT
       this.dispatchThemeChange()
     }
   }
 
   private getThemeTokens() {
-    return this.theme === 'dark' ? darkTheme : lightTheme
+    return themeTokenMap[this.theme as Theme]
   }
 
   public resetTheme(): void {
     localStorage.removeItem(THEME_STORAGE_KEY)
-    this.theme = this.mediaQuery.matches ? 'dark' : 'light'
+    this.theme = this.mediaQuery.matches ? THEMES.DARK : THEMES.LIGHT
   }
 
   private generateCSSVariables(tokens: Record<string, any>, prefix = ''): Record<string, string> {
@@ -159,11 +176,5 @@ export class AuroTheme extends LitElement {
         <slot></slot>
       </div>
     `
-  }
-}
-
-declare global {
-  interface HTMLElementTagNameMap {
-    'auro-theme': AuroTheme;
   }
 }
